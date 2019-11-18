@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -17,11 +18,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	url := os.Args[1]
+	targetUrl := os.Args[1]
 
 	client := &http.Client{}
 
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest("GET", targetUrl, nil)
 
 	if err != nil {
 		log.Fatal("[-] Created request object error : ", err)
@@ -30,6 +31,8 @@ func main() {
 	request.Header.Add("User-Agent", "__spider_man__")
 
 	response, err := client.Do(request)
+
+	urlsArr := []string{}
 
 	if err != nil {
 		log.Fatal("[-] load response content error : ", err)
@@ -44,7 +47,17 @@ func main() {
 	doc.Find("a").Each(func(i int, selector *goquery.Selection) {
 		href, err := selector.Attr("href")
 		if err {
-			fmt.Println("[*] Found url : ", href)
+
+			if strings.HasPrefix(href, "/") || strings.HasPrefix(href, "//") || strings.HasPrefix(href, "javascript:;") {
+				fmt.Println("[*] the url is invalid.", href)
+			} else {
+				//fmt.Println("[+] Found url : ", href)
+				urlsArr = append(urlsArr, href)
+			}
 		}
 	})
+
+	for k, v := range urlsArr {
+		fmt.Println(k, v)
+	}
 }
