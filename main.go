@@ -1,6 +1,17 @@
 package main
 
 import (
+	"Crawler-url-go/lib"
+)
+
+func main() {
+	target := "http://www.baidu.com"
+	crawler := &lib.WCrawler{}
+	crawler.Crawler(target)
+}
+
+/*
+import (
 	"fmt"
 	"log"
 	"net/http"
@@ -61,3 +72,4 @@ func main() {
 		fmt.Println(k, v)
 	}
 }
+*/
