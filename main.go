@@ -1,13 +1,24 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"Crawler-url-go/lib"
 )
 
 func main() {
-	target := "http://www.baidu.com"
+	if len(os.Args) != 2 {
+		fmt.Println("[+] Crawler all links in web page.")
+		fmt.Println("[+] Usage : ", os.Args[0], "<url>")
+		fmt.Println("[+] Example : ", os.Args[0], "https://www.localhost.com")
+		os.Exit(1)
+	}
+	target := os.Args[1]
 	crawler := &lib.WCrawler{}
-	crawler.Crawler(target)
+	c := crawler.Crawler(target)
+	for _, link := range c.Links {
+		fmt.Println("[*] Found : ", link)
+	}
 }
 
 /*
