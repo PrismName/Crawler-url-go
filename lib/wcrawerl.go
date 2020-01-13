@@ -2,8 +2,9 @@ package lib
 
 import (
 	"fmt"
-	"strings"
 	"github.com/PuerkitoBio/goquery"
+	"net/http"
+	"strings"
 )
 
 // EXTENSION : white list
@@ -22,41 +23,45 @@ func (w *WCrawler) Crawler(targetURL string) *WCrawler {
 	}
 
 	docs, _ := goquery.NewDocumentFromResponse(resp)
-	w.ExtractorLink(docs)
+	w.ExtractorLink(docs, resp)
 	return w
 }
 
 // ExtractorLink : extractor all link from web page
-func (w *WCrawler) ExtractorLink(docs *goquery.Document) {
-	docs.Find("a").Each(func (i int, selection *goquery.Selection) {
+func (w *WCrawler) ExtractorLink(docs *goquery.Document, resp *http.Response) {
+	docs.Find("a").Each(func(i int, selection *goquery.Selection) {
 		aLink, _ := selection.Attr("href")
-		if isentire(aLink) {
-			w.Links = append(w.Links, aLink)
-		}
+		ajUrl := joinUrl(aLink, resp)
+		w.Links = append(w.Links, ajUrl)
 	})
 
-	docs.Find("img").Each(func (i int, selection *goquery.Selection) {
+	docs.Find("img").Each(func(i int, selection *goquery.Selection) {
 		src, _ := selection.Attr("src")
-		if isentire(src) {
-			w.Links = append(w.Links, src)
-		}
+
+		sjUrl := joinUrl(src, resp)
+		w.Links = append(w.Links, sjUrl)
 	})
 
-	docs.Find("script").Each(func (i int, selection *goquery.Selection)  {
+	docs.Find("script").Each(func(i int, selection *goquery.Selection) {
 		link, _ := selection.Attr("src")
-		if isentire(link) {
-			w.Links = append(w.Links, link)
-		}
+		jUrl := joinUrl(link, resp)
+		w.Links = append(w.Links, jUrl)
 	})
 }
 
-func isentire(targetURL string) bool {
-	if strings.HasPrefix(targetURL, "http://") || strings.HasPrefix(targetURL, "https://") {
-		return true
-	} else if strings.HasPrefix(targetURL, "/") || strings.HasPrefix(targetURL, "//") || strings.HasPrefix(targetURL, "javascript;:") {
-		return false
+func joinUrl(targetURL string, response *http.Response) string {
+	switch {
+	case strings.HasPrefix(targetURL, "//"):
+		return "http:" + targetURL
+	case strings.HasPrefix(targetURL, "#") ||
+		strings.HasPrefix(targetURL, "javascript:;") ||
+		strings.HasPrefix(targetURL, "/"):
+		return response.Request.URL.String()
+	case strings.HasPrefix(targetURL, "http://") || strings.HasPrefix(targetURL, "https://"):
+		return targetURL
+	default:
+		return targetURL
 	}
-	return false
 }
 
 func checkLinkExtension(link string) string {
@@ -65,9 +70,5 @@ func checkLinkExtension(link string) string {
 			return link
 		}
 	}
-	return ""
-}
-
-func checkLink(link string) string {
 	return ""
 }
